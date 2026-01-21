@@ -7,22 +7,39 @@ Physical database isolation for multi-tenant SaaS. No `WHERE tenant_id` clauses.
 ## Choose Your Path
 
 **🖥️ CLI** — Quick demo, management  
-→ [docs/CLI.md](docs/CLI.md)
-
-**🔌 Proxy** — Connect with psql, ORMs  
-→ [docs/PROXY.md](docs/PROXY.md)
+→ [1-docs/CLI.md](1-docs/CLI.md)
 
 **🌐 API** — HTTP integration, automation  
-→ [docs/API.md](docs/API.md)
+→ [1-docs/API.md](1-docs/API.md)
+
+**🔌 Direct Connection** — Connect with native clients or ORMs  
+→ [PostgreSQL](1-docs/POSTGRES.md) | [MySQL](1-docs/MYSQL.md) | [MongoDB](1-docs/MONGODB.md) | [Redis](1-docs/REDIS.md)
 
 ---
 
-## What's Included
+## Schemas
 
-- `schemas/fintech.sql` — Banking schema (accounts, transactions, audit)
-- `schemas/iot.sql` — IoT schema (devices, sensors, readings)
-- `docs/ARCHITECTURE.md` — System architecture diagram
-- `MANIFESTO.md` — Why we built this
+- `2-schemas/fintech.sql` — Banking (accounts, transactions, audit)
+- `2-schemas/iot.sql` — IoT (devices, sensors, readings)
+
+**Quick import:**
+```bash
+tdb workspaces schema <workspace_id> --template fintech
+```
+
+**Or run SQL directly:**
+```bash
+psql "CONNECTION_STRING" -f 2-schemas/fintech.sql
+```
+
+---
+
+## Connection Examples
+
+- `3-connections/sequelize.js` — Node.js Sequelize
+- `3-connections/prisma.js` — Node.js Prisma
+- `3-connections/sqlalchemy.py` — Python SQLAlchemy
+- `3-connections/api.sh` — curl HTTP examples
 
 ---
 
@@ -30,7 +47,6 @@ Physical database isolation for multi-tenant SaaS. No `WHERE tenant_id` clauses.
 
 - [Website](https://tenantsdb.com)
 - [Documentation](https://docs.tenantsdb.com)
-- [The Manifesto](./MANIFESTO.md)
 
 ---
 
