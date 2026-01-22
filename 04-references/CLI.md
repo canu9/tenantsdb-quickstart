@@ -50,12 +50,10 @@ tdb signup --email you@company.com --password secret123 --project "Demo"
 ```
 
 **Response:**
-```json
-{
-  "success": true,
-  "api_key": "tenantsdb_sk_xxx...",
-  "project_id": "tdb_abc123"
-}
+```
+✓ Account created!
+✓ API key saved to ~/.tenantsdb.json
+Project ID: tdb_abc123
 ```
 
 ---
@@ -98,7 +96,7 @@ tdb config show
 **Response:**
 ```
 KEY      VALUE                    
-API URL  https://api.tenantsdb.com    
+API URL  http://localhost:9876    
 API Key  tenantsdb_sk_a91de15...  
 ```
 
@@ -124,6 +122,12 @@ tdb projects list [--json]
       "name": "Healthcare SaaS",
       "api_key_count": 2,
       "created_at": "2026-01-17T20:12:06Z"
+    },
+    {
+      "project_id": "tdb_43cd4942",
+      "name": "E-commerce Platform",
+      "api_key_count": 1,
+      "created_at": "2026-01-17T20:12:24Z"
     }
   ]
 }
@@ -165,14 +169,23 @@ tdb apikeys list [--json]
   "count": 2,
   "api_keys": [
     {
+      "id": 3,
+      "key": "tenantsdb_sk_3cc032060bb9984af05f7a1d172c92917da41f528cd8b6c87e8cf0439ff7d501",
+      "project_id": "tdb_2abf90d3",
+      "project_name": "CI Pipeline",
+      "tier": "free",
+      "is_active": true,
+      "created_at": "2026-01-17T20:26:07Z"
+    },
+    {
       "id": 1,
-      "key": "tenantsdb_sk_xxx...",
+      "key": "tenantsdb_sk_a91de15692a7219f08c1619ef72039df8e77398a7828187d4921f5c296897c5c",
       "project_id": "tdb_2abf90d3",
       "project_name": "Default",
       "tier": "free",
       "is_active": true,
       "created_at": "2026-01-17T20:12:06Z",
-      "last_used_at": "2026-01-21T19:28:38Z"
+      "last_used_at": "2026-01-22T18:59:13Z"
     }
   ]
 }
@@ -210,15 +223,29 @@ tdb workspaces list [--json]
 **Response:**
 ```json
 {
+  "count": 7,
   "success": true,
-  "count": 6,
   "workspaces": [
     {
+      "created_at": 1768982386,
+      "database": "MongoDB",
+      "id": "final-mongo",
+      "name": "final-mongo",
+      "version": "1.0"
+    },
+    {
+      "created_at": 1768982385,
+      "database": "MySQL",
+      "id": "final-mysql",
+      "name": "final-mysql",
+      "version": "1.0"
+    },
+    {
+      "created_at": 1768771909,
+      "database": "PostgreSQL",
       "id": "fintech",
       "name": "fintech",
-      "database": "PostgreSQL",
-      "version": "1.0",
-      "created_at": 1768771909
+      "version": "1.0"
     }
   ]
 }
@@ -241,11 +268,61 @@ tdb workspaces create --name <name> --database <type>
 tdb workspaces create --name myapp --database PostgreSQL
 ```
 
+**Response:**
+```
+✓ Workspace 'myapp' created
+```
+
+```json
+{
+  "success": true,
+  "id": "myapp",
+  "blueprint": "myapp",
+  "database": "PostgreSQL",
+  "message": "Workspace 'myapp' created. Connect via proxy to build your schema.",
+  "connection": {
+    "host": "pg.tenantsdb.com",
+    "port": 5432,
+    "database": "myapp_dev",
+    "user": "tdb_2abf90d3",
+    "password": "tdb_d2bf66ed7898c448"
+  },
+  "connection_string": "postgresql://tdb_2abf90d3:tdb_d2bf66ed7898c448@pg.tenantsdb.com:5432/myapp_dev"
+}
+```
+
 ### workspaces get
 
-Get workspace.
+Get workspace details.
 ```bash
-tdb workspaces get <workspace_id>
+tdb workspaces get <workspace_id> [--json]
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "id": "fintech",
+  "name": "fintech",
+  "version": "1.0",
+  "database": "PostgreSQL",
+  "schema": {
+    "type": "tables",
+    "data": {
+      "table_count": 0,
+      "tables": null
+    }
+  },
+  "undeployed_changes": 0,
+  "connection": {
+    "host": "pg.tenantsdb.com",
+    "port": 5432,
+    "database": "fintech_dev",
+    "user": "tdb_2abf90d3",
+    "password": "tdb_d2bf66ed7898c448"
+  },
+  "connection_string": "postgresql://tdb_2abf90d3:tdb_d2bf66ed7898c448@pg.tenantsdb.com:5432/fintech_dev"
+}
 ```
 
 ### workspaces delete
@@ -334,6 +411,23 @@ tdb workspaces import-analyze <workspace_id> --host <host> --database <db> --use
 | `--type` | ❌ | postgresql | Database type (postgresql, mysql, mongodb) |
 | `--routing-field` | ❌ | tenant_id | Routing field name |
 
+**Example:**
+```bash
+tdb workspaces import-analyze myapp \
+  --host localhost \
+  --port 5432 \
+  --database legacy_app \
+  --user admin \
+  --password secret \
+  --routing-field company_id
+```
+
+**Error Response (invalid routing field):**
+```
+✗ Analysis failed
+✗ Error: no table found with routing field 'invalid_field'
+```
+
 ### workspaces import-data
 
 Import data from external database.
@@ -387,7 +481,6 @@ tdb blueprints list [--json]
 **Response:**
 ```json
 {
-  "success": true,
   "blueprints": [
     {
       "id": "tdb_2abf90d3_fintech_v1_0",
@@ -398,16 +491,53 @@ tdb blueprints list [--json]
       "project_id": "tdb_2abf90d3",
       "created_at": 1768771909,
       "deployed_to": null
+    },
+    {
+      "id": "tdb_2abf90d3_final-mysql_v1_0",
+      "name": "final-mysql",
+      "version": "1.0",
+      "workspace_id": "tdb_2abf90d3_final-mysql_dev",
+      "database_type": "MySQL",
+      "project_id": "tdb_2abf90d3",
+      "created_at": 1768982385,
+      "deployed_to": null
     }
-  ]
+  ],
+  "success": true
 }
 ```
 
 ### blueprints get
 
-Get blueprint.
+Get blueprint details.
 ```bash
-tdb blueprints get <blueprint_name>
+tdb blueprints get <blueprint_name> [--json]
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "name": "fintech",
+  "version": "1.0",
+  "status": "draft",
+  "database": "PostgreSQL",
+  "workspace": "tdb_2abf90d3_fintech_dev",
+  "created_at": "2026-01-21T20:42:37Z",
+  "schema": {
+    "type": "tables",
+    "data": {
+      "table_count": 0,
+      "tables": null
+    }
+  },
+  "deployment_status": {
+    "deployed": false,
+    "deployed_to_count": 0,
+    "ready_to_deploy": false,
+    "total_ddl_statements": 0
+  }
+}
 ```
 
 ### blueprints versions
@@ -431,13 +561,23 @@ tdb tenants list [--json]
 **Response:**
 ```json
 {
+  "count": 1,
   "success": true,
-  "count": 2,
   "tenants": [
     {
-      "tenant_id": "acme",
-      "status": "active",
-      "databases": [...]
+      "created_at": "2026-01-21T20:55:11.169386Z",
+      "databases": [
+        {
+          "blueprint": "fintech",
+          "database_type": "PostgreSQL"
+        },
+        {
+          "blueprint": "legacy-import-mysql",
+          "database_type": "MySQL"
+        }
+      ],
+      "status": "ready",
+      "tenant_id": "acme"
     }
   ]
 }
@@ -452,20 +592,73 @@ tdb tenants create --name <name> --blueprint <blueprint> [--isolation <level>]
 
 | Flag | Required | Default | Description |
 |------|----------|---------|-------------|
-| `--name` | ✅ | - | Tenant name |
+| `--name` | ✅ | - | Tenant name (lowercase, numbers, underscores only) |
 | `--blueprint` | ✅ | - | Blueprint name |
-| `--isolation` | ❌ | 1 | Isolation level (1 or 2) |
+| `--isolation` | ❌ | 1 | Isolation level (1=shared, 2=dedicated) |
 
 **Example:**
 ```bash
-tdb tenants create --name acme --blueprint fintech --isolation 1
+tdb tenants create --name acme --blueprint fintech
+```
+
+**Response:**
+```
+✓ Tenant 'acme' created
+```
+
+```json
+{
+  "success": true,
+  "tenant_id": "acme",
+  "status": "ready",
+  "databases": [
+    {
+      "blueprint": "fintech",
+      "database_type": "PostgreSQL",
+      "isolation_level": 1,
+      "connection": {
+        "database": "fintech__acme",
+        "connection_string": "postgresql://tdb_2abf90d3:tdb_d2bf66ed7898c448@pg.tenantsdb.com:5432/fintech__acme"
+      }
+    }
+  ]
+}
 ```
 
 ### tenants get
 
 Get tenant details.
 ```bash
-tdb tenants get <tenant_id>
+tdb tenants get <tenant_id> [--json]
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "tenant_id": "acme",
+  "status": "ready",
+  "databases": [
+    {
+      "blueprint": "fintech",
+      "database_type": "PostgreSQL",
+      "isolation_level": 1,
+      "connection": {
+        "database": "fintech__acme",
+        "connection_string": "postgresql://tdb_2abf90d3:tdb_d2bf66ed7898c448@pg.tenantsdb.com:5432/fintech__acme"
+      }
+    },
+    {
+      "blueprint": "legacy-import-mysql",
+      "database_type": "MySQL",
+      "isolation_level": 1,
+      "connection": {
+        "database": "legacy-import-mysql__acme",
+        "connection_string": "mysql://tdb_2abf90d3:tdb_d2bf66ed7898c448@mysql.tenantsdb.com:3306/legacy-import-mysql__acme"
+      }
+    }
+  ]
+}
 ```
 
 ### tenants delete
@@ -549,11 +742,45 @@ tdb tenants logs <tenant_id> [--type <type>] [--since <time>]
 | `--type` | Filter by type (error, slow) |
 | `--since` | Time filter (1h, 24h, 7d) |
 
+**Response:**
+```json
+{
+  "success": true,
+  "tenant_id": "acme",
+  "logs": [],
+  "count": 0,
+  "has_more": false
+}
+```
+
 ### tenants metrics
 
 Get tenant metrics.
 ```bash
-tdb tenants metrics <tenant_id>
+tdb tenants metrics <tenant_id> [--json]
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "tenant_id": "acme",
+  "isolation_level": 1,
+  "database_type": "PostgreSQL",
+  "query_metrics": {
+    "queries_today": 0,
+    "queries_this_hour": 0,
+    "queries_this_week": 0,
+    "avg_latency_ms": 0,
+    "max_latency_ms": 0,
+    "success_rate": 100,
+    "failed_queries": 0,
+    "slow_queries": 0
+  },
+  "database_metrics": {
+    "note": "Storage and connection metrics only available for L2 (dedicated) tenants"
+  }
+}
 ```
 
 ### tenants deployments
@@ -578,10 +805,10 @@ tdb deployments list [--json]
 ```json
 {
   "success": true,
-  "count": 5,
+  "count": 6,
   "jobs": [
     {
-      "job_id": "dep_231e",
+      "job_id": "dep_fc60",
       "blueprint_id": "fintech",
       "status": "completed",
       "progress": 100,
@@ -589,8 +816,8 @@ tdb deployments list [--json]
       "total_tenants": 1,
       "completed_tenants": 1,
       "failed_tenants": 0,
-      "started_at": "2026-01-18T19:52:19Z",
-      "completed_at": "2026-01-18T19:52:19Z"
+      "started_at": "2026-01-21T20:55:11Z",
+      "completed_at": "2026-01-21T20:55:11Z"
     }
   ]
 }
